@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Release Notes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .release-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .release-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .release-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .author-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .slack-link {
+            text-decoration: none;
+            color: #4A154B;
+            font-size: 0.9em;
+            padding: 5px 10px;
+            border: 1px solid #4A154B;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .slack-link:hover {
+            background: #4A154B;
+            color: white;
+        }
+        
+        .release-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .release-content {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .release-content em {
+            color: #4A154B;
+            font-style: italic;
+        }
+        
+        .release-image {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .thread-toggle {
+            background: #f8f9fa;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #666;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .thread-toggle:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .thread-toggle.active {
+            background: #4A154B;
+            color: white;
+        }
+        
+        .thread-replies {
+            margin-top: 15px;
+            padding-left: 20px;
+            border-left: 3px solid #e9ecef;
+            display: none;
+        }
+        
+        .thread-replies.show {
+            display: block;
+        }
+        
+        .reply-message {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .release-card {
+            animation: fadeIn 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Release Notes</h1>
+        <div id="releases-container">
+            <div class="loading">Loading releases...</div>
+        </div>
+    </div>
+
+    <script>
+        // REPLACE THIS WITH YOUR GOOGLE SHEET ID
+        const SHEET_ID = 'YOUR_SHEET_ID_HERE';
+        const SHEET_NAME = 'Sheet1'; // Change if your sheet has a different name
+        
+        // Function to format timestamp
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                timeZone: 'UTC',
+                timeZoneName: 'short'
+            };
+            return date.toLocaleString('en-US', options);
+        }
+
+        // Function to toggle thread replies
+        function toggleThread(button, threadId) {
+            const threadDiv = document.getElementById(threadId);
+            button.classList.toggle('active');
+            threadDiv.classList.toggle('show');
+            
+            const arrow = button.querySelector('.arrow');
+            arrow.textContent = threadDiv.classList.contains('show') ? '▼' : '▶';
+        }
+        
+        // Function to group replies with main messages
+        function groupMessages(rows) {
+            const mainMessages = [];
+            const replies = [];
+            
+            // Separate main messages and replies
+            rows.forEach(row => {
+                if (row[7] === 'FALSE' || !row[7]) {
+                    mainMessages.push({
+                        id: row[0],
+                        authorName: row[1],
+                        timestamp: row[2],
+                        title: row[3] || '',
+                        content: row[4] || '',
+                        slackLink: row[5] || '',
+                        imageUrl: row[6] || '',
+                        replies: []
+                    });
+                } else {
+                    replies.push({
+                        id: row[0],
+                        authorName: row[1],
+                        timestamp: row[2],
+                        content: row[4] || '',
+                        imageUrl: row[6] || ''
+                    });
+                }
+            });
+            
+            // Match replies to main messages (simple keyword matching)
+            replies.forEach(reply => {
+                const replyWords = reply.content.toLowerCase().split(' ').filter(w => w.length > 4);
+                
+                for (let message of mainMessages) {
+                    const messageWords = message.content.toLowerCase().split(' ').filter(w => w.length > 4);
+                    const matches = replyWords.filter(word => messageWords.includes(word));
+                    
+                    if (matches.length >= 2) {
+                        message.replies.push(reply);
+                        break;
+                    }
+                }
+            });
+            
+            return mainMessages;
+        }
+
+        // Function to render releases
+        function renderReleases(releases) {
+            const container = document.getElementById('releases-container');
+            
+            if (!releases || releases.length === 0) {
+                container.innerHTML = '<div class="loading">No releases found</div>';
+                return;
+            }
+            
+            container.innerHTML = releases.map(release => {
+                const hasReplies = release.replies && release.replies.length > 0;
+                const threadId = `thread-${release.id?.replace('.', '-')}`;
+                
+                return `
+                    <div class="release-card">
+                        <div class="release-header">
+                            <div class="author-info">
+                                <span class="author-name">${release.authorName}</span>
+                                <span class="timestamp">${formatTimestamp(release.timestamp)}</span>
+                            </div>
+                            ${release.slackLink ? `<a href="${release.slackLink}" target="_blank" class="slack-link">View in Slack →</a>` : ''}
+                        </div>
+                        
+                        ${release.title ? `<div class="release-title">${release.title}</div>` : ''}
+                        
+                        <div class="release-content">${release.content}</div>
+                        
+                        ${release.imageUrl ? `<img src="${release.imageUrl}" alt="Release screenshot" class="release-image">` : ''}
+                        
+                        ${hasReplies ? `
+                            <button class="thread-toggle" onclick="toggleThread(this, '${threadId}')">
+                                <span class="arrow">▶</span>
+                                <span>${release.replies.length} ${release.replies.length === 1 ? 'reply' : 'replies'}</span>
+                            </button>
+                            
+                            <div class="thread-replies" id="${threadId}">
+                                ${release.replies.map(reply => `
+                                    <div class="reply-message">
+                                        <div class="reply-header">
+                                            <div class="author-info">
+                                                <span class="author-name">${reply.authorName}</span>
+                                                <span class="timestamp">${formatTimestamp(reply.timestamp)}</span>
+                                            </div>
+                                        </div>
+                                        <div class="release-content">${reply.content}</div>
+                                        ${reply.imageUrl ? `<img src="${reply.imageUrl}" alt="Reply screenshot" class="release-image">` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Load releases from Google Sheets
+        async function loadReleases() {
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+                
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                // Parse Google's JSON response (it's wrapped in a function call)
+                const jsonString = text.substring(47, text.length - 2);
+                const data = JSON.parse(jsonString);
+                
+                // Extract rows (skip header row)
+                const rows = data.table.rows.slice(1).map(row => 
+                    row.c.map(cell => cell ? cell.v : '')
+                );
+                
+                // Group messages and replies
+                const groupedMessages = groupMessages(rows);
+                
+                // Sort by timestamp (newest first)
+                groupedMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                renderReleases(groupedMessages);
+            } catch (error) {
+                console.error('Error loading releases:', error);
+                document.getElementById('releases-container').innerHTML = 
+                    '<div class="loading">Error loading releases. Please check back later.</div>';
+            }
+        }
+
+        // Load releases when page loads
+        loadReleases();
+        
+        // Refresh releases every 2 minutes
+        setInterval(loadReleases, 2 * 60 * 1000);
+    </script>
+</body>
+</html>
