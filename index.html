@@ -212,33 +212,54 @@
         
         // Function to group replies with main messages
         function groupMessages(rows) {
-            const mainMessages = [];
-            const replies = [];
-            
-            // Separate main messages and replies
-            rows.forEach(row => {
-                if (row[7] === 'FALSE' || !row[7]) {
-                    mainMessages.push({
-                        id: row[0],
-                        authorName: row[1],
-                        timestamp: row[2],
-                        title: row[3] || '',
-                        content: row[4] || '',
-                        slackLink: row[5] || '',
-                        imageUrl: row[6] || '',
-                        replies: []
-                    });
-                } else {
-                    replies.push({
-                        id: row[0],
-                        authorName: row[1],
-                        timestamp: row[2],
-                        content: row[4] || '',
-                        imageUrl: row[6] || ''
-                    });
-                }
+    const mainMessages = [];
+    const replies = [];
+    
+    // Separate main messages and replies
+    rows.forEach(row => {
+        if (row[7] === 'FALSE' || !row[7]) {
+            // Main message
+            mainMessages.push({
+                id: row[0],
+                authorName: row[1],
+                timestamp: row[2],
+                title: row[3] || '',
+                content: row[4] || '',
+                slackLink: row[5] || '',
+                imageUrl: row[6] || '',
+                matchingText: row[8] || row[4], // Use matching text or content
+                replies: []
             });
-            
+        } else {
+            // Reply
+            replies.push({
+                id: row[0],
+                authorName: row[1],
+                timestamp: row[2],
+                content: row[4] || '',
+                imageUrl: row[6] || '',
+                matchingText: row[8] || ''
+            });
+        }
+    });
+    
+    // Match replies to parents based on text similarity
+    replies.forEach(reply => {
+        if (reply.matchingText) {
+            // Find the parent message that best matches
+            for (let message of mainMessages) {
+                // Check if the reply's matching text appears in the parent's content
+                if (message.content.toLowerCase().includes(reply.matchingText.toLowerCase()) ||
+                    message.title.toLowerCase().includes(reply.matchingText.toLowerCase())) {
+                    message.replies.push(reply);
+                    break;
+                }
+            }
+        }
+    });
+    
+    return mainMessages;
+}
             // Match replies to main messages (simple keyword matching)
             replies.forEach(reply => {
                 const replyWords = reply.content.toLowerCase().split(' ').filter(w => w.length > 4);
