@@ -188,35 +188,71 @@
         function formatTimestamp(timestamp) {
             if (!timestamp) return '';
             
-            // Handle different timestamp formats
             let date;
-            if (timestamp.includes('-')) {
-                // Already formatted date like "2025-10-05 12:30:00"
-                date = new Date(timestamp);
+            
+            // Handle Google Sheets date format: Date(2025,8,24,17,2,28)
+            if (typeof timestamp === 'string' && timestamp.startsWith('Date(')) {
+                const matches = timestamp.match(/Date\((\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\)/);
+                if (matches) {
+                    // Note: JavaScript months are 0-indexed, so we use the month value directly from Google Sheets
+                    date = new Date(
+                        parseInt(matches[1]), // year
+                        parseInt(matches[2]), // month (0-indexed from Google Sheets)
+                        parseInt(matches[3]), // day
+                        parseInt(matches[4]), // hour
+                        parseInt(matches[5]), // minute
+                        parseInt(matches[6])  // second
+                    );
+                }
+            } else if (timestamp.includes('-') && timestamp.includes(':')) {
+                // Format like "2025-10-02 12:50:49"
+                date = new Date(timestamp.replace(' ', 'T') + 'Z'); // Add Z for UTC
             } else if (timestamp.length > 10) {
-                // Unix timestamp with milliseconds
+                // Unix timestamp
                 date = new Date(parseFloat(timestamp) * 1000);
             } else {
-                // Try parsing as is
                 date = new Date(timestamp);
             }
             
             // Check if date is valid
-            if (isNaN(date.getTime())) {
-                return timestamp; // Return original if can't parse
+            if (!date || isNaN(date.getTime())) {
+                return '';
             }
             
-            const options = { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric'
-            };
-            return date.toLocaleDateString('en-US', options);
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            const month = months[date.getMonth()];
+            const day = date.getDate();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            
+            // Add ordinal suffix to day
+            const suffix = getDaySuffix(day);
+            
+            return `${month} ${day}${suffix} at ${hours}:${minutes} UTC`;
         }
         
-        // Function to format content with proper line breaks
+        // Helper function to get day suffix
+        function getDaySuffix(day) {
+            if (day > 3 && day < 21) return 'th';
+            switch (day % 10) {
+                case 1: return 'st';
+                case 2: return 'nd';
+                case 3: return 'rd';
+                default: return 'th';
+            }
+        }
+        
+        // Function to format content with proper line breaks and styling
         function formatContent(text) {
             if (!text) return '';
+            
+            // Remove underscores
+            text = text.replace(/_/g, '');
+            
+            // Convert *text* to bold
+            text = text.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
             
             // Replace bullet points to be on new lines
             text = text.replace(/([•])/g, '<br>$1');
@@ -327,20 +363,17 @@
                                 <span class="author-name">${release.authorName}</span>
                                 <span class="timestamp">${formatTimestamp(release.timestamp)}</span>
                             </div>
-                            ${release.slackLink ? `<a href="${release.slackLink}" target="_blank" class="slack-link">View in Slack →</a>` : ''}
+                            <div style="display: flex; gap: 10px;">
+                                ${release.slackLink ? `<a href="${release.slackLink}" target="_blank" class="slack-link">View in Slack →</a>` : ''}
+                                ${release.imageUrl ? 
+                                    `<a href="${release.imageUrl}" target="_blank" class="slack-link" title="View Image">📷</a>` 
+                                    : ''}
+                            </div>
                         </div>
                         
-                        ${release.title ? `<div class="release-title">${release.title}</div>` : ''}
+                        ${release.title ? `<div class="release-title">${formatContent(release.title)}</div>` : ''}
                         
                         <div class="release-content">${formatContent(release.content)}</div>
-                        
-                        ${release.imageUrl ? 
-                            `<div style="margin-top: 15px;">
-                                <a href="${release.imageUrl}" target="_blank" style="color: #4A154B; text-decoration: none;">
-                                    📷 View Image
-                                </a>
-                            </div>` 
-                            : ''}
                         
                         ${hasReplies ? `
                             <button class="thread-toggle" onclick="toggleThread(this, '${threadId}')">
@@ -356,15 +389,11 @@
                                                 <span class="author-name">${reply.authorName}</span>
                                                 <span class="timestamp">${formatTimestamp(reply.timestamp)}</span>
                                             </div>
+                                            ${reply.imageUrl ? 
+                                                `<a href="${reply.imageUrl}" target="_blank" class="slack-link" title="View Image">📷</a>` 
+                                                : ''}
                                         </div>
                                         <div class="release-content">${formatContent(reply.content)}</div>
-                                        ${reply.imageUrl ? 
-                                            `<div style="margin-top: 10px;">
-                                                <a href="${reply.imageUrl}" target="_blank" style="color: #4A154B; text-decoration: none;">
-                                                    📷 View Image
-                                                </a>
-                                            </div>` 
-                                            : ''}
                                     </div>
                                 `).join('')}
                             </div>
