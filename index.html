@@ -180,9 +180,9 @@
     </div>
 
     <script>
-        // REPLACE THIS WITH YOUR GOOGLE SHEET ID
+        // Your Google Sheet configuration
         const SHEET_ID = '1I2ceg13BrlgQGYdVFI2Awxry1_PSoebxqKZEq6dyvIQ';
-        const SHEET_NAME = 'October'; // Change if your sheet has a different name
+        const SHEET_NAME = 'October'; // Change this to match your sheet tab name
         
         // Function to format timestamp
         function formatTimestamp(timestamp) {
@@ -212,65 +212,59 @@
         
         // Function to group replies with main messages
         function groupMessages(rows) {
-    const mainMessages = [];
-    const replies = [];
-    
-    // Separate main messages and replies
-    rows.forEach(row => {
-        if (row[7] === 'FALSE' || !row[7]) {
-            // Main message
-            mainMessages.push({
-                id: row[0],
-                authorName: row[1],
-                timestamp: row[2],
-                title: row[3] || '',
-                content: row[4] || '',
-                slackLink: row[5] || '',
-                imageUrl: row[6] || '',
-                matchingText: row[8] || row[4], // Use matching text or content
-                replies: []
-            });
-        } else {
-            // Reply
-            replies.push({
-                id: row[0],
-                authorName: row[1],
-                timestamp: row[2],
-                content: row[4] || '',
-                imageUrl: row[6] || '',
-                matchingText: row[8] || ''
-            });
-        }
-    });
-    
-    // Match replies to parents based on text similarity
-    replies.forEach(reply => {
-        if (reply.matchingText) {
-            // Find the parent message that best matches
-            for (let message of mainMessages) {
-                // Check if the reply's matching text appears in the parent's content
-                if (message.content.toLowerCase().includes(reply.matchingText.toLowerCase()) ||
-                    message.title.toLowerCase().includes(reply.matchingText.toLowerCase())) {
-                    message.replies.push(reply);
-                    break;
+            const mainMessages = [];
+            const replies = [];
+            
+            // Separate main messages and replies
+            rows.forEach(row => {
+                if (row[7] === 'FALSE' || !row[7]) {
+                    // Main message
+                    mainMessages.push({
+                        id: row[0],
+                        authorName: row[1],
+                        timestamp: row[2],
+                        title: row[3] || '',
+                        content: row[4] || '',
+                        slackLink: row[5] || '',
+                        imageUrl: row[6] || '',
+                        replies: []
+                    });
+                } else {
+                    // Reply
+                    replies.push({
+                        id: row[0],
+                        authorName: row[1],
+                        timestamp: row[2],
+                        content: row[4] || '',
+                        imageUrl: row[6] || '',
+                        matchingText: row[8] || ''
+                    });
                 }
-            }
-        }
-    });
-    
-    return mainMessages;
-}
-            // Match replies to main messages (simple keyword matching)
+            });
+            
+            // Match replies to main messages
             replies.forEach(reply => {
-                const replyWords = reply.content.toLowerCase().split(' ').filter(w => w.length > 4);
-                
-                for (let message of mainMessages) {
-                    const messageWords = message.content.toLowerCase().split(' ').filter(w => w.length > 4);
-                    const matches = replyWords.filter(word => messageWords.includes(word));
+                // Try to match using matching text column (column I)
+                if (reply.matchingText) {
+                    for (let message of mainMessages) {
+                        if (message.id === reply.matchingText || 
+                            message.content.toLowerCase().includes(reply.matchingText.toLowerCase())) {
+                            message.replies.push(reply);
+                            break;
+                        }
+                    }
+                } else {
+                    // Fallback: simple keyword matching
+                    const replyWords = reply.content.toLowerCase().split(' ').filter(w => w.length > 4);
                     
-                    if (matches.length >= 2) {
-                        message.replies.push(reply);
-                        break;
+                    for (let message of mainMessages) {
+                        const messageWords = message.content.toLowerCase().split(' ').filter(w => w.length > 4);
+                        const matches = replyWords.filter(word => messageWords.includes(word));
+                        
+                        if (matches.length >= 2) {
+                            message.replies.push(reply);
+                            break;
+                        }
                     }
                 }
             });
