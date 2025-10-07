@@ -620,36 +620,46 @@
             // Remove underscores
             text = text.replace(/_/g, '');
             
-            // Handle asterisk formatting for bold (but not after colons)
+            // Handle titles with asterisks and colons - *Title:* becomes <strong>Title:</strong>
+            text = text.replace(/\*([^*]+):\*/g, '<strong>$1:</strong>');
+            
+            // Handle other asterisk formatting for bold (but not after colons)
             text = text.replace(/\*([^*:]+)\*/g, '<strong>$1</strong>');
             
-            // Process section headers
+            // Process section headers - make them bold and create new sections
             const sectionHeaders = [
                 "What's New\\??", "Why it matters", "Why It Matters", "Problem", 
                 "Solution", "What's in this release", "How to get started",
                 "Admin Controls", "Member Experience", "Known Limitations",
-                "Scope", "Key Results", "Known Limitations \\(Beta\\)"
+                "Scope", "Key Results", "Access", "Known Limitations \\(Beta\\)",
+                "How to get started \\(Admins Only\\)"
             ];
             
+            // Add line breaks before section headers
             sectionHeaders.forEach(header => {
                 const regex = new RegExp(`(${header})\\s*:?`, 'gi');
                 text = text.replace(regex, (match) => {
-                    const cleanHeader = match.replace(':', '').trim();
-                    return `</div><div class="content-section"><div class="content-section-header">${cleanHeader}:</div>`;
+                    return `</div><div class="content-section"><div class="content-section-header">${match.trim()}</div>`;
                 });
             });
             
+            // Wrap in initial section div
             text = '<div class="content-section">' + text;
             
-            // Process bullet points
-            text = text.replace(/•\s*([^•\n]+)/g, '<ul><li>$1</li></ul>');
+            // Process bullet points - each bullet on its own line
+            text = text.replace(/([•])\s*([^•\n]+)/g, (match, bullet, content) => {
+                return '<ul><li>' + content.trim() + '</li></ul>';
+            });
             
-            // Process numbered lists
-            text = text.replace(/(\d+)\.\s*([^0-9\n][^\n]*)/g, '<ul><li>$2</li></ul>');
+            // Process numbered lists - each number on its own line
+            text = text.replace(/(\d+)\.\s*([^\n]*?)(?=\d+\.|$|•)/g, (match, num, content) => {
+                return '<ul><li>' + content.trim() + '</li></ul>';
+            });
             
-            // Merge consecutive ul tags
+            // Merge consecutive ul tags to keep lists together
             text = text.replace(/<\/ul>\s*<ul>/g, '');
             
+            // Close final section
             text = text + '</div>';
             
             // Clean up empty sections
