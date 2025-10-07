@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Release Notes</title>
+    <title>Product Releases</title>
     <style>
         * {
             margin: 0;
@@ -15,71 +15,247 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #f8f9fb;
             min-height: 100vh;
-            padding: 40px 20px;
             color: #1e1e1e;
         }
         
         .header {
-            text-align: center;
-            margin-bottom: 50px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
         h1 {
             color: #1e1e1e;
-            font-size: 2.5em;
-            font-weight: 700;
-            margin-bottom: 10px;
-            letter-spacing: -0.02em;
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
         
         .subtitle {
             color: #6b7280;
-            font-size: 1.1em;
-            font-weight: 400;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            padding: 10px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+        
+        .button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+        
+        .refresh-btn {
+            background: #5b6ef8;
+            color: white;
+        }
+        
+        .refresh-btn:hover {
+            background: #4c5ed9;
+        }
+        
+        .gemini-btn {
+            background: white;
+            color: #8b5cf6;
+            border: 1px solid #8b5cf6;
+        }
+        
+        .gemini-btn:hover {
+            background: #8b5cf6;
+            color: white;
         }
         
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        
+        .main-content {
+            flex: 1;
+        }
+        
+        .sidebar {
+            width: 200px;
+            position: sticky;
+            top: 180px;
+            height: fit-content;
+        }
+        
+        .stats-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #1e1e1e;
+        }
+        
+        .stages-section {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .stages-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1e1e1e;
+        }
+        
+        .stages-hint {
+            font-size: 0.85em;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+        
+        .stage-tag {
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: grab;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.9em;
+            transition: transform 0.2s;
+        }
+        
+        .stage-tag:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+        
+        .stage-internal {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .stage-ga {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .stage-exclusion {
+            background: #fef3c7;
+            color: #92400e;
         }
         
         .release-card {
             background: white;
             border-radius: 8px;
-            padding: 30px;
-            margin-bottom: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
             border: 1px solid #e5e7eb;
             transition: box-shadow 0.2s ease;
+            position: relative;
+        }
+        
+        .release-card.drag-over {
+            border-color: #5b6ef8;
+            box-shadow: 0 4px 12px rgba(91, 110, 248, 0.2);
         }
         
         .release-card:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         
+        .card-stage {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
         .release-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #f0f0f0;
         }
         
         .author-info {
             display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #5b6ef8;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .author-details {
+            display: flex;
             flex-direction: column;
-            gap: 4px;
         }
         
         .author-name {
             font-weight: 600;
             color: #1e1e1e;
-            font-size: 1.05em;
+            font-size: 0.95em;
         }
         
         .timestamp {
             color: #9ca3af;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
         
         .action-buttons {
@@ -92,16 +268,15 @@
             color: #5b6ef8;
             font-size: 0.9em;
             padding: 6px 12px;
-            border: 1px solid #5b6ef8;
+            border: 1px solid #e5e7eb;
             border-radius: 6px;
             transition: all 0.2s ease;
             background: white;
-            font-weight: 500;
         }
         
         .slack-link:hover, .image-link:hover {
-            background: #5b6ef8;
-            color: white;
+            border-color: #5b6ef8;
+            background: #f0f4ff;
         }
         
         .image-link {
@@ -110,17 +285,17 @@
         }
         
         .release-title {
-            font-size: 1.4em;
+            font-size: 1.2em;
             font-weight: 600;
             color: #1e1e1e;
             margin-bottom: 16px;
-            line-height: 1.3;
+            line-height: 1.4;
         }
         
         .release-content {
             color: #4b5563;
-            line-height: 1.7;
-            font-size: 1em;
+            line-height: 1.6;
+            font-size: 0.95em;
         }
         
         .release-content strong {
@@ -128,69 +303,32 @@
             font-weight: 600;
         }
         
-        .section-header {
-            color: #1e1e1e;
+        .content-section {
+            margin-bottom: 16px;
+        }
+        
+        .content-section-header {
             font-weight: 600;
-            margin-top: 20px;
-            margin-bottom: 12px;
-            font-size: 1.05em;
-        }
-        
-        .bullet-item {
-            margin-left: 20px;
+            color: #1e1e1e;
             margin-bottom: 8px;
-            line-height: 1.6;
         }
         
-        .thread-toggle {
-            background: #f8f9fb;
-            border: 1px solid #e5e7eb;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            color: #6b7280;
-            font-size: 0.9em;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 16px;
-            font-weight: 500;
+        .content-section ul {
+            list-style: none;
+            margin-left: 20px;
         }
         
-        .thread-toggle:hover {
-            background: #f3f4f6;
-            color: #4b5563;
-        }
-        
-        .thread-toggle.active {
-            background: #5b6ef8;
-            color: white;
-            border-color: #5b6ef8;
-        }
-        
-        .thread-replies {
-            margin-top: 16px;
+        .content-section li {
+            position: relative;
+            margin-bottom: 6px;
             padding-left: 20px;
-            border-left: 2px solid #e5e7eb;
-            display: none;
         }
         
-        .thread-replies.show {
-            display: block;
-        }
-        
-        .reply-message {
-            background: #f8f9fb;
-            padding: 16px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-        }
-        
-        .reply-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
+        .content-section li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #6b7280;
         }
         
         .loading {
@@ -199,33 +337,61 @@
             font-size: 1.1em;
             padding: 60px;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .release-card {
-            animation: fadeIn 0.4s ease;
-        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>📦 Release Notes</h1>
-        <p class="subtitle">Stay updated with our latest product improvements</p>
+        <div class="header-content">
+            <h1>Product Releases</h1>
+            <p class="subtitle">Track and analyze your team's release communications</p>
+            <div class="controls">
+                <input type="text" class="search-box" placeholder="Search releases, messages, or team members..." id="searchBox">
+                <button class="button refresh-btn" onclick="refreshData()">🔄 Refresh Data</button>
+                <button class="button gemini-btn" onclick="askGemini()">✨ Ask Gemini</button>
+            </div>
+        </div>
     </div>
     
     <div class="container">
-        <div id="releases-container">
-            <div class="loading">Loading releases...</div>
+        <div class="main-content">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-label">Total Releases</div>
+                    <div class="stat-value" id="totalReleases">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Contributors</div>
+                    <div class="stat-value" id="activeContributors">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Date Filter</div>
+                    <div class="stat-value" id="dateFilter">All</div>
+                </div>
+            </div>
+            
+            <div id="releases-container">
+                <div class="loading">Loading releases...</div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="stages-section">
+                <div class="stages-title">Stages</div>
+                <div class="stages-hint">Drag a stage onto a release card</div>
+                <div class="stage-tag stage-internal" draggable="true" data-stage="internal">Internal</div>
+                <div class="stage-tag stage-ga" draggable="true" data-stage="ga">GA</div>
+                <div class="stage-tag stage-exclusion" draggable="true" data-stage="exclusion">ENT Exclusion</div>
+            </div>
         </div>
     </div>
 
     <script>
         // Your Google Sheet configuration
         const SHEET_ID = '1I2ceg13BrlgQGYdVFI2Awxry1_PSoebxqKZEq6dyvIQ';
-        const SHEET_NAME = 'October'; // Change this to match your sheet tab name
+        const SHEET_NAME = 'October';
+        
+        let allReleases = [];
+        let filteredReleases = [];
         
         // Function to format timestamp
         function formatTimestamp(timestamp) {
@@ -233,7 +399,6 @@
             
             let date;
             
-            // Handle Google Sheets date format: Date(2025,8,24,17,2,28)
             if (typeof timestamp === 'string' && timestamp.startsWith('Date(')) {
                 const matches = timestamp.match(/Date\((\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\)/);
                 if (matches) {
@@ -247,7 +412,6 @@
                     );
                 }
             } else if (timestamp.includes('-') && timestamp.includes(':')) {
-                // Format like "2025-10-02 12:50:49"
                 date = new Date(timestamp.replace(' ', 'T') + 'Z');
             } else if (timestamp.length > 10) {
                 date = new Date(parseFloat(timestamp) * 1000);
@@ -267,12 +431,9 @@
             const hours = date.getHours().toString().padStart(2, '0');
             const minutes = date.getMinutes().toString().padStart(2, '0');
             
-            const suffix = getDaySuffix(day);
-            
-            return `${month} ${day}${suffix} at ${hours}:${minutes} UTC`;
+            return `${month} ${day}${getDaySuffix(day)} at ${hours}:${minutes} UTC`;
         }
         
-        // Helper function to get day suffix
         function getDaySuffix(day) {
             if (day > 3 && day < 21) return 'th';
             switch (day % 10) {
@@ -283,61 +444,90 @@
             }
         }
         
-        // Function to format content with proper line breaks and styling
+        // Enhanced content formatting
         function formatContent(text) {
             if (!text) return '';
             
             // Remove underscores
             text = text.replace(/_/g, '');
             
-            // Convert *text* to bold
-            text = text.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+            // Handle asterisk formatting for bold
+            text = text.replace(/\*([^*]+)\*/g, '<strong>$1</strong>');
             
-            // Add line breaks after section headers
-            const headers = [
-                "What's New?", "What's new?", "What's New", 
-                "Why it matters", "Why It Matters",
-                "Problem", "PROBLEM",
-                "What's in this release", "What's In This Release"
+            // Headers that should trigger new sections
+            const sectionHeaders = [
+                "What's New\\??", "Why it matters?", "Why It Matters", "Problem:", "Problem", 
+                "Solution:", "Solution", "What's in this release", "How to get started",
+                "Admin Controls:", "Member Experience:", "Known Limitations",
+                "Scope:", "Key Results"
             ];
             
-            headers.forEach(header => {
-                const regex = new RegExp(`(${header.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                text = text.replace(regex, '<div class="section-header">$1</div>');
+            // Process section headers
+            sectionHeaders.forEach(header => {
+                const regex = new RegExp(`(${header})\\s*:?\\s*`, 'gi');
+                text = text.replace(regex, (match) => {
+                    return `</div><div class="content-section"><div class="content-section-header">${match.trim()}</div>`;
+                });
             });
             
-            // Format bullet points - both • and ◦
-            text = text.replace(/([•◦])\s*/g, '<div class="bullet-item">$1 ');
-            // Close the div tags for bullets
-            text = text.replace(/(<div class="bullet-item">[•◦][^<]*)/g, '$1</div>');
+            // Wrap in initial section div
+            text = '<div class="content-section">' + text;
             
-            // Format numbered lists
-            text = text.replace(/(\d+\.)\s*/g, '<div class="bullet-item">$1 ');
-            // Close the div tags for numbered items
-            text = text.replace(/(<div class="bullet-item">\d+\.[^<]*)/g, '$1</div>');
+            // Process bullet points
+            text = text.replace(/•\s*([^•\n]+)/g, '<ul><li>$1</li></ul>');
+            
+            // Process numbered lists
+            text = text.replace(/(\d+)\.\s*([^0-9\n][^\n]*)/g, '<ul><li>$2</li></ul>');
+            
+            // Merge consecutive ul tags
+            text = text.replace(/<\/ul>\s*<ul>/g, '');
+            
+            // Close final section
+            text = text + '</div>';
+            
+            // Clean up empty sections
+            text = text.replace(/<div class="content-section"><\/div>/g, '');
             
             return text;
         }
-
-        // Function to toggle thread replies
-        function toggleThread(button, threadId) {
-            const threadDiv = document.getElementById(threadId);
-            button.classList.toggle('active');
-            threadDiv.classList.toggle('show');
+        
+        // Search functionality
+        function performSearch() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
             
-            const arrow = button.querySelector('.arrow');
-            arrow.textContent = threadDiv.classList.contains('show') ? '▼' : '▶';
+            if (!searchTerm) {
+                filteredReleases = allReleases;
+            } else {
+                filteredReleases = allReleases.filter(release => {
+                    return release.authorName.toLowerCase().includes(searchTerm) ||
+                           release.content.toLowerCase().includes(searchTerm) ||
+                           (release.title && release.title.toLowerCase().includes(searchTerm));
+                });
+            }
+            
+            renderReleases(filteredReleases);
         }
         
-        // Function to group replies with main messages
+        // Refresh data
+        function refreshData() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.textContent = '⏳ Refreshing...';
+            loadReleases().then(() => {
+                btn.textContent = '🔄 Refresh Data';
+            });
+        }
+        
+        // Ask Gemini
+        function askGemini() {
+            alert('Gemini integration would connect to Google\'s AI API to analyze your release notes and provide insights.');
+        }
+        
+        // Function to group messages
         function groupMessages(rows) {
             const mainMessages = [];
-            const replies = [];
             
-            // Separate main messages and replies
             rows.forEach(row => {
                 if (row[7] === 'FALSE' || !row[7]) {
-                    // Main message
                     mainMessages.push({
                         id: row[0],
                         authorName: row[1],
@@ -346,49 +536,14 @@
                         content: row[4] || '',
                         slackLink: row[5] || '',
                         imageUrl: row[6] || '',
-                        replies: []
+                        stage: null
                     });
-                } else {
-                    // Reply
-                    replies.push({
-                        id: row[0],
-                        authorName: row[1],
-                        timestamp: row[2],
-                        content: row[4] || '',
-                        imageUrl: row[6] || '',
-                        matchingText: row[8] || ''
-                    });
-                }
-            });
-            
-            // Match replies to main messages
-            replies.forEach(reply => {
-                if (reply.matchingText) {
-                    for (let message of mainMessages) {
-                        if (message.id === reply.matchingText || 
-                            message.content.toLowerCase().includes(reply.matchingText.toLowerCase())) {
-                            message.replies.push(reply);
-                            break;
-                        }
-                    }
-                } else {
-                    const replyWords = reply.content.toLowerCase().split(' ').filter(w => w.length > 4);
-                    
-                    for (let message of mainMessages) {
-                        const messageWords = message.content.toLowerCase().split(' ').filter(w => w.length > 4);
-                        const matches = replyWords.filter(word => messageWords.includes(word));
-                        
-                        if (matches.length >= 2) {
-                            message.replies.push(reply);
-                            break;
-                        }
-                    }
                 }
             });
             
             return mainMessages;
         }
-
+        
         // Function to render releases
         function renderReleases(releases) {
             const container = document.getElementById('releases-container');
@@ -398,16 +553,26 @@
                 return;
             }
             
+            // Update stats
+            document.getElementById('totalReleases').textContent = releases.length;
+            const uniqueAuthors = [...new Set(releases.map(r => r.authorName))];
+            document.getElementById('activeContributors').textContent = uniqueAuthors.length;
+            
             container.innerHTML = releases.map(release => {
-                const hasReplies = release.replies && release.replies.length > 0;
-                const threadId = `thread-${release.id?.replace('.', '-')}`;
+                const initials = release.authorName.split(' ').map(n => n[0]).join('').toUpperCase();
+                const stageHtml = release.stage ? 
+                    `<div class="card-stage stage-${release.stage}">${release.stage === 'exclusion' ? 'ENT Exclusion' : release.stage.toUpperCase()}</div>` : '';
                 
                 return `
-                    <div class="release-card">
+                    <div class="release-card" data-id="${release.id}">
+                        ${stageHtml}
                         <div class="release-header">
                             <div class="author-info">
-                                <span class="author-name">${release.authorName}</span>
-                                <span class="timestamp">${formatTimestamp(release.timestamp)}</span>
+                                <div class="author-avatar">${initials}</div>
+                                <div class="author-details">
+                                    <span class="author-name">${release.authorName}</span>
+                                    <span class="timestamp">${formatTimestamp(release.timestamp)}</span>
+                                </div>
                             </div>
                             <div class="action-buttons">
                                 ${release.imageUrl ? 
@@ -420,35 +585,69 @@
                         ${release.title ? `<div class="release-title">${formatContent(release.title)}</div>` : ''}
                         
                         <div class="release-content">${formatContent(release.content)}</div>
-                        
-                        ${hasReplies ? `
-                            <button class="thread-toggle" onclick="toggleThread(this, '${threadId}')">
-                                <span class="arrow">▶</span>
-                                <span>${release.replies.length} ${release.replies.length === 1 ? 'reply' : 'replies'}</span>
-                            </button>
-                            
-                            <div class="thread-replies" id="${threadId}">
-                                ${release.replies.map(reply => `
-                                    <div class="reply-message">
-                                        <div class="reply-header">
-                                            <div class="author-info">
-                                                <span class="author-name">${reply.authorName}</span>
-                                                <span class="timestamp">${formatTimestamp(reply.timestamp)}</span>
-                                            </div>
-                                            ${reply.imageUrl ? 
-                                                `<a href="${reply.imageUrl}" target="_blank" class="image-link" title="View Image">📷</a>` 
-                                                : ''}
-                                        </div>
-                                        <div class="release-content">${formatContent(reply.content)}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
                     </div>
                 `;
             }).join('');
+            
+            // Initialize drag and drop
+            initializeDragAndDrop();
         }
-
+        
+        // Initialize drag and drop
+        function initializeDragAndDrop() {
+            const stageTags = document.querySelectorAll('.stage-tag');
+            const releaseCards = document.querySelectorAll('.release-card');
+            
+            stageTags.forEach(tag => {
+                tag.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.effectAllowed = 'copy';
+                    e.dataTransfer.setData('stage', tag.dataset.stage);
+                });
+            });
+            
+            releaseCards.forEach(card => {
+                card.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                    card.classList.add('drag-over');
+                });
+                
+                card.addEventListener('dragleave', () => {
+                    card.classList.remove('drag-over');
+                });
+                
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    card.classList.remove('drag-over');
+                    
+                    const stage = e.dataTransfer.getData('stage');
+                    const releaseId = card.dataset.id;
+                    
+                    // Update the release data
+                    const release = allReleases.find(r => r.id === releaseId);
+                    if (release) {
+                        release.stage = stage;
+                    }
+                    
+                    // Re-render with updated stage
+                    renderReleases(filteredReleases.length > 0 ? filteredReleases : allReleases);
+                });
+                
+                // Remove stage on click
+                const stageElement = card.querySelector('.card-stage');
+                if (stageElement) {
+                    stageElement.addEventListener('click', () => {
+                        const releaseId = card.dataset.id;
+                        const release = allReleases.find(r => r.id === releaseId);
+                        if (release) {
+                            release.stage = null;
+                        }
+                        renderReleases(filteredReleases.length > 0 ? filteredReleases : allReleases);
+                    });
+                }
+            });
+        }
+        
         // Load releases from Google Sheets
         async function loadReleases() {
             try {
@@ -457,33 +656,34 @@
                 const response = await fetch(url);
                 const text = await response.text();
                 
-                // Parse Google's JSON response (it's wrapped in a function call)
                 const jsonString = text.substring(47, text.length - 2);
                 const data = JSON.parse(jsonString);
                 
-                // Extract rows (skip header row)
                 const rows = data.table.rows.slice(1).map(row => 
                     row.c.map(cell => cell ? cell.v : '')
                 );
                 
-                // Group messages and replies
-                const groupedMessages = groupMessages(rows);
+                allReleases = groupMessages(rows);
+                filteredReleases = allReleases;
                 
                 // Sort by timestamp (newest first)
-                groupedMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                allReleases.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
-                renderReleases(groupedMessages);
+                renderReleases(allReleases);
             } catch (error) {
                 console.error('Error loading releases:', error);
                 document.getElementById('releases-container').innerHTML = 
                     '<div class="loading">Error loading releases. Please check back later.</div>';
             }
         }
-
+        
+        // Event listeners
+        document.getElementById('searchBox').addEventListener('input', performSearch);
+        
         // Load releases when page loads
         loadReleases();
         
-        // Refresh releases every 2 minutes
+        // Refresh every 2 minutes
         setInterval(loadReleases, 2 * 60 * 1000);
     </script>
 </body>
