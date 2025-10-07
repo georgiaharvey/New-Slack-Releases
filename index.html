@@ -426,29 +426,28 @@
             font-weight: 600;
         }
         
-        .content-section {
-            margin-bottom: 12px;
-        }
-        
         .content-section-header {
             font-weight: 600;
             color: #1e1e1e;
-            margin-bottom: 6px;
+            margin: 12px 0 8px 0;
+            font-size: 0.95em;
         }
         
-        .content-section ul {
+        .release-content ul {
             list-style: none;
-            margin-left: 20px;
-            margin-top: 4px;
+            margin: 8px 0 8px 20px;
+            padding: 0;
         }
         
-        .content-section li {
+        .release-content li {
             position: relative;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             padding-left: 20px;
+            font-size: 0.95em;
+            color: #4b5563;
         }
         
-        .content-section li:before {
+        .release-content li:before {
             content: "•";
             position: absolute;
             left: 0;
@@ -865,11 +864,17 @@
                 return;
             }
             
-            // Sort by timestamp - most recent first
+            // Sort by timestamp - most recent first (newest to oldest)
             releases.sort((a, b) => {
                 const dateA = getDateFromTimestamp(a.timestamp);
                 const dateB = getDateFromTimestamp(b.timestamp);
-                if (!dateA || !dateB) return 0;
+                
+                // If either date is invalid, put it at the end
+                if (!dateA && !dateB) return 0;
+                if (!dateA) return 1;
+                if (!dateB) return -1;
+                
+                // Sort newest first (b - a for descending order)
                 return dateB.getTime() - dateA.getTime();
             });
             
