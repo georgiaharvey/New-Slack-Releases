@@ -187,17 +187,52 @@
         // Function to format timestamp
         function formatTimestamp(timestamp) {
             if (!timestamp) return '';
-            const date = new Date(timestamp);
+            
+            // Handle different timestamp formats
+            let date;
+            if (timestamp.includes('-')) {
+                // Already formatted date like "2025-10-05 12:30:00"
+                date = new Date(timestamp);
+            } else if (timestamp.length > 10) {
+                // Unix timestamp with milliseconds
+                date = new Date(parseFloat(timestamp) * 1000);
+            } else {
+                // Try parsing as is
+                date = new Date(timestamp);
+            }
+            
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return timestamp; // Return original if can't parse
+            }
+            
             const options = { 
                 year: 'numeric', 
                 month: 'short', 
-                day: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit',
-                timeZone: 'UTC',
-                timeZoneName: 'short'
+                day: 'numeric'
             };
-            return date.toLocaleString('en-US', options);
+            return date.toLocaleDateString('en-US', options);
+        }
+        
+        // Function to format content with proper line breaks
+        function formatContent(text) {
+            if (!text) return '';
+            
+            // Replace bullet points to be on new lines
+            text = text.replace(/([•])/g, '<br>$1');
+            
+            // Replace numbered lists to be on new lines
+            text = text.replace(/(\d+\.)/g, '<br>$1');
+            
+            // Clean up multiple line breaks
+            text = text.replace(/<br><br>/g, '<br>');
+            
+            // Remove leading line break if it exists
+            if (text.startsWith('<br>')) {
+                text = text.substring(4);
+            }
+            
+            return text;
         }
 
         // Function to toggle thread replies
@@ -297,9 +332,15 @@
                         
                         ${release.title ? `<div class="release-title">${release.title}</div>` : ''}
                         
-                        <div class="release-content">${release.content}</div>
+                        <div class="release-content">${formatContent(release.content)}</div>
                         
-                        ${release.imageUrl ? `<img src="${release.imageUrl}" alt="Release screenshot" class="release-image">` : ''}
+                        ${release.imageUrl ? 
+                            `<div style="margin-top: 15px;">
+                                <a href="${release.imageUrl}" target="_blank" style="color: #4A154B; text-decoration: none;">
+                                    📷 View Image
+                                </a>
+                            </div>` 
+                            : ''}
                         
                         ${hasReplies ? `
                             <button class="thread-toggle" onclick="toggleThread(this, '${threadId}')">
@@ -316,8 +357,14 @@
                                                 <span class="timestamp">${formatTimestamp(reply.timestamp)}</span>
                                             </div>
                                         </div>
-                                        <div class="release-content">${reply.content}</div>
-                                        ${reply.imageUrl ? `<img src="${reply.imageUrl}" alt="Reply screenshot" class="release-image">` : ''}
+                                        <div class="release-content">${formatContent(reply.content)}</div>
+                                        ${reply.imageUrl ? 
+                                            `<div style="margin-top: 10px;">
+                                                <a href="${reply.imageUrl}" target="_blank" style="color: #4A154B; text-decoration: none;">
+                                                    📷 View Image
+                                                </a>
+                                            </div>` 
+                                            : ''}
                                     </div>
                                 `).join('')}
                             </div>
