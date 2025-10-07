@@ -864,17 +864,17 @@
                 return;
             }
             
-            // Sort by timestamp - most recent first (newest to oldest)
+            // Sort by timestamp - NEWEST FIRST (most recent to least recent)
             releases.sort((a, b) => {
                 const dateA = getDateFromTimestamp(a.timestamp);
                 const dateB = getDateFromTimestamp(b.timestamp);
                 
-                // If either date is invalid, put it at the end
+                // Handle invalid dates
                 if (!dateA && !dateB) return 0;
-                if (!dateA) return 1;
+                if (!dateA) return 1;  // Put invalid dates at end
                 if (!dateB) return -1;
                 
-                // Sort newest first (b - a for descending order)
+                // Sort by newest first - October 29 before October 2
                 return dateB.getTime() - dateA.getTime();
             });
             
@@ -887,6 +887,15 @@
                         ${release.stage === 'exclusion' ? 'ENT Exclusion' : release.stage.toUpperCase()}
                         <span class="stage-remove" onclick="removeStage('${release.id}')">×</span>
                     </div>` : '';
+                
+                // Process title without asterisks
+                let processedTitle = release.title;
+                if (processedTitle) {
+                    // Remove asterisks
+                    processedTitle = processedTitle.replace(/\*/g, '');
+                    // Bold only text before colon
+                    processedTitle = processedTitle.replace(/^([^:]+):/, '<strong>$1</strong>:');
+                }
                 
                 return `
                     <div class="release-card" data-id="${release.id}">
@@ -907,7 +916,7 @@
                             </div>
                         </div>
                         
-                        ${release.title ? `<div class="release-title">${formatContent(release.title)}</div>` : ''}
+                        ${processedTitle ? `<div class="release-title">${processedTitle}</div>` : ''}
                         
                         <div class="release-content">${formatContent(release.content)}</div>
                     </div>
